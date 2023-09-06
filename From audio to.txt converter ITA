@@ -1,0 +1,57 @@
+import tkinter as tk
+from tkinter import filedialog, messagebox
+import speech_recognition as sr
+
+def browse_file():
+    filepath.set(filedialog.askopenfilename(filetypes=[("Audio Files", "*.mp3;*.wav")]))
+
+def convert_audio_to_text():
+    recognizer = sr.Recognizer()
+    with sr.AudioFile(filepath.get()) as source:
+        audio = recognizer.listen(source)
+        try:
+            text.set(recognizer.recognize_google(audio, language="it-IT"))
+            text_box.insert(tk.END, text.get())
+        except sr.UnknownValueError:
+            text.set("Impossibile riconoscere l'audio")
+            text_box.insert(tk.END, text.get())
+        except sr.RequestError:
+            text.set("Errore di servizio; assicurarsi di essere connessi a Internet")
+            text_box.insert(tk.END, text.get())
+
+def save_text():
+    save_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text Files", "*.txt")])
+    if save_path:
+        with open(save_path, 'w', encoding='utf-8') as file:
+            file.write(text.get())
+        messagebox.showinfo("Salvato", "Il testo è stato salvato con successo!")
+
+root = tk.Tk()
+root.title("Convertitore Audio-to-Text")
+
+filepath = tk.StringVar()
+text = tk.StringVar()
+
+file_label = tk.Label(root, text="File Audio:")
+file_label.pack()
+
+file_entry = tk.Entry(root, textvariable=filepath, width=40)
+file_entry.pack()
+
+browse_button = tk.Button(root, text="Sfoglia", command=browse_file)
+browse_button.pack()
+
+convert_button = tk.Button(root, text="Converti in Testo", command=convert_audio_to_text)
+convert_button.pack()
+
+text_label = tk.Label(root, text="Testo:")
+text_label.pack()
+
+text_box = tk.Text(root, height=10, width=50)
+text_box.pack()
+text_box.bind("<Key>", lambda e: "break")
+
+save_button = tk.Button(root, text="Salva", command=save_text)
+save_button.pack()
+
+root.mainloop()
